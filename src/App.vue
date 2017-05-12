@@ -10,20 +10,20 @@
                         <th>Finished?</th>
                         <th></th>
                     </tr>
-                    <tr v-for="(todo, index) in todos">
+                    <tr v-for="todo in todos">
                         <td>{{ todo.title }}</td>
                         <td>{{ todo.date }}</td>
-                        <td :data-index="index" v-on:click="modify">
-                            <button class="btn btn-success btn-xs" v-if="todo.finished === true">Yes</button>
-                            <button class="btn btn-danger btn-xs" v-else>No</button>
+                        <td @click="modify(todo)">
+                            <button v-if="todo.finished" class="btn btn-success btn-xs">Yes</button>
+                            <button v-else class="btn btn-danger btn-xs">No</button>
                         </td>
-                        <td><button v-on:click="remove($event)" class="btn btn-danger btn-xs" :data-index="index">x</button></td>
+                        <td><button @click="remove(todo)" class="btn btn-danger btn-xs">x</button></td>
                     </tr>
                     <tr>
-                        <td><input type="text" id="title" v-model="title" class="form-control"></td>
-                        <td><input type="date" v-model="date" class="form-control"></td>
-                        <td><input type="checkbox" v-model="finished"></td>
-                        <td><button class="btn btn-default" v-on:click="add">+</button></td>
+                        <td><input v-model="title" type="text" class="form-control"></td>
+                        <td><input v-model="date" type="date" class="form-control"></td>
+                        <td><input v-model="finished" type="checkbox"></td>
+                        <td><button @click="add" class="btn btn-default">+</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -37,37 +37,37 @@
     export default {
         data() {
             return {
-                todos: JSON.parse(localStorage.getItem('todos', )) || [],
+                todos: JSON.parse(localStorage.getItem('todos')) || [],
                 title: '',
                 date: '',
                 finished: false
             }
         },
+        watch: {
+            todos: {
+                deep: true,
+                handler() {
+                    localStorage.setItem('todos', JSON.stringify(this.todos));
+                }
+            }
+        },
         methods: {
-            add: function() {
+            add() {
                 if (this.title.length > 0) {
                     this.todos.push({
                         title: this.title,
                         date: this.date,
-                        finished: !!this.finished
+                        finished: this.finished
                     });
-                    this.saveToStorage();
                     this.title = '';
                     this.finished = false;
                 }
             },
-            modify: function(event) {
-                let index = event.currentTarget.dataset.index;
-                this.todos[index].finished = !this.todos[index].finished;
-                this.saveToStorage();
+            modify(todo) {
+                todo.finished = !todo.finished;
             },
-            remove: function(event) {
-                let index = event.currentTarget.dataset.index;
-                this.todos.splice(index, 1);
-                this.saveToStorage();
-            },
-            saveToStorage: function() {
-                localStorage.setItem('todos', JSON.stringify(this.todos));
+            remove(todo) {
+                this.todos = this.todos.filter(obj => obj !== todo);
             }
         }
     }
